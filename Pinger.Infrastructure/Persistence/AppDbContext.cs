@@ -3,13 +3,8 @@ using Pinger.Application.Domain;
 
 namespace Pinger.Infrastructure.Persistence;
 
-public class AppDbContext: DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-        
-    }
-    
     public DbSet<PingTarget>  PingTargets { get; set; }
     public DbSet<PingLog> PingLogs { get; set; }
     

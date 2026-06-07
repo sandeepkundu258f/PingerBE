@@ -1,6 +1,0 @@
-@Pinger.Api_HostAddress = http://localhost:5181
-
-GET {{Pinger.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

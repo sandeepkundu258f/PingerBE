@@ -39,7 +39,7 @@ namespace Pinger.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PingTargetId");
 
-                    b.ToTable("PingLogs");
+                    b.ToTable("PingLogs", (string)null);
                 });
 
             modelBuilder.Entity("Pinger.Application.Domain.PingTarget", b =>
@@ -75,7 +75,7 @@ namespace Pinger.Infrastructure.Persistence.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("PingTargets");
+                    b.ToTable("PingTargets", (string)null);
                 });
 
             modelBuilder.Entity("Pinger.Application.Domain.PingLog", b =>
