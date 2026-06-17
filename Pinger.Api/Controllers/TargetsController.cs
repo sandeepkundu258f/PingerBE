@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pinger.Application.DTOs;
+using Pinger.Application.Enums;
 using Pinger.Application.Services.Interface;
 
 namespace Pinger.Api.Controllers;
@@ -10,14 +11,15 @@ namespace Pinger.Api.Controllers;
 [Authorize]
 public class TargetsController(IPingTargetService pingTargetService) : ControllerBase
 {
-    [HttpGet("GetAllTargets")]
+    [Authorize(Roles = $"{nameof(RoleEnum.Admin)}")]
+    [HttpGet("getAllTargets")]
     public async Task<IActionResult> GetTargets()
     {
         var targets = await pingTargetService.GetAllPingTargetsAsync();
         return Ok(targets);
     }
 
-    [HttpPost("CreatePingTarget")]
+    [HttpPost("createPingTarget")]
     public async Task<IActionResult> CreateTarget([FromBody] CreatePingTargetRequestDto requestDto)
     {
         if (string.IsNullOrWhiteSpace(requestDto.Name) || string.IsNullOrWhiteSpace(requestDto.Url))

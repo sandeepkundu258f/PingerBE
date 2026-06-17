@@ -8,7 +8,7 @@ namespace Pinger.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController(IAuthService authService) : ControllerBase
 {
-    [HttpPost("register")]
+    [HttpPost("Register")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterRequestDto requestDto)
     {
         var success = await authService.RegisterAsync(requestDto);
@@ -18,13 +18,18 @@ public class AuthController(IAuthService authService) : ControllerBase
         return Ok("User registered successfully");
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> LoginUser([FromBody] LoginRequestDto requestDto)
+    [HttpPost("Login")]
+    public async Task<IActionResult> LoginUser([FromForm] LoginRequestDto requestDto)
     {
         var token = await authService.LoginAsync(requestDto);
         if (token == null)
             return Unauthorized("Invalid creds");
 
-        return Ok(new { Token = token });
+        return Ok(
+            new
+            {
+                access_token = token ,
+                token_type = "Bearer"
+            });
     }
 }

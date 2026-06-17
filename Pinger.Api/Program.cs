@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -5,8 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Pinger.Application.Services.Interface;
 using Pinger.Infrastructure.Persistence;
 using Pinger.Infrastructure.Services;
-using Scalar.AspNetCore;
-//using Microsoft.OpenApi;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(builder
 
 builder.Services.AddScoped<IPingTargetService, PingTargetService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -37,54 +38,76 @@ builder.Services.AddAuthentication(options =>
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(key)
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                // Get your Database Context from the request's DI container
+                var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+
+                //Extract the User ID from the token's claims
+                var userIdStr = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+                {
+                    context.Fail("Unauthorized: Token contains invalid user data.");
+                    return;
+                }
+
+                //Query the DB to check if the user still exists and is active
+                var userExistsAndActive = await dbContext.Users
+                    .AnyAsync(u => u.Id == userId && u.IsDeleted == false);
+
+                if (!userExistsAndActive)
+                {
+                    // Instantly neutralizes the token and forces a 401 Unauthorized response
+                    context.Fail("Unauthorized: This account has been deleted or deactivated.");
+                }
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
 
-/*
-// Add security scheme to Scalar UI configurations so it gives us an "Authorize" lock icon
-builder.Services.AddOpenApi(options =>
+//Register Swagger Services
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
 {
-    // Discarded 'context' and 'cancellationToken' with '_' to clear the unused parameter warnings
-    options.AddDocumentTransformer((document, _, _) => 
-    {
-        document.Components ??= new OpenApiComponents();
-        
-        // 1. Use IOpenApiSecurityScheme interface to satisfy the dictionary constraint
-        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-        
-        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
-        {
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT",
-            Description = "Input your JWT token directly into the field below."
-        };
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Pinger API", Version = "v1" });
 
-        document.Security ??= new List<OpenApiSecurityRequirement>();
-        
-        // 2. Use the new OpenApiSecuritySchemeReference class directly as the dictionary key
-        document.Security.Add(new OpenApiSecurityRequirement
+    //Define OAuth2 Password Flow to generate Username/Password fields
+    options.AddSecurityDefinition("OAuth2Password", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.OAuth2,
+        Description = "Enter your username and password to log in and automatically fetch your JWT.",
+        Flows = new OpenApiOAuthFlows
         {
-            // Fix: Replaced Array.Empty<string>() with new List<string>()
-            [new OpenApiSecuritySchemeReference("Bearer")] = []
-        });
-        
-        return Task.CompletedTask;
+            Password = new OpenApiOAuthFlow
+            {
+                // Points directly to your login endpoint
+                TokenUrl = new Uri("/api/Auth/login", UriKind.Relative) 
+            }
+        }
+    });
+
+    //Apply this requirement globally
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("OAuth2Password", document)] = []
     });
 });
-
-*/
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference();
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Pinger API v1");
+    });
 }
 
 app.UseHttpsRedirection();
