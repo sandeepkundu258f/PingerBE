@@ -5,3 +5,6 @@ riderModule.iml
 /_ReSharper.Caches/
 *.db
 /.idea
+*.DotSettings.user*
+*.db-shm
+*.db-wal
