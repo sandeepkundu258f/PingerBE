@@ -75,13 +75,40 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .WithMany(y => y.UserRoles)
                 .HasForeignKey(x => x.RoleId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(r => r.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
+        // Default SuperAdmin
+        modelBuilder.Entity<UserRole>().HasData(
+            new UserRole
+            {
+                Id = 1,
+                UserId = (int)UserEnum.sysadmin,
+                RoleId = (int)RoleEnum.SuperAdmin,
+                IsDeleted = false
+            }
+        );
 
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(x => x.Id);
             entity.HasIndex(x => x.Username).IsUnique();
+            
+            entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(r => r.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
+        
+        // Default SuperAdmin
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                Id = (int)UserEnum.sysadmin,
+                Username = nameof(UserEnum.sysadmin), //sysadmin
+                PasswordHash = "$2a$12$SYJyDpVwm.1//dVZTKX.B.PdnIpDFqUk4LUsWdYwSqZBZk8LsHzwW", //password
+                IsDeleted = false
+            }
+        );
 
         modelBuilder.Entity<Role>(entity =>
         {
@@ -92,9 +119,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(r => r.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
+        // Default Roles
         modelBuilder.Entity<Role>().HasData(
+            new Role { Id = (int)RoleEnum.SuperAdmin, Name =  nameof(RoleEnum.SuperAdmin), IsDeleted = false },
             new Role { Id = (int)RoleEnum.Admin, Name = nameof(RoleEnum.Admin), IsDeleted = false },
             new Role { Id = (int)RoleEnum.User, Name =  nameof(RoleEnum.User), IsDeleted = false }
+            
+            // Add additional below this comment
         );
     }
 }
