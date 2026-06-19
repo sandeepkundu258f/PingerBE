@@ -7,4 +7,5 @@ public interface IUserService
 {
     Task<HttpStatusEnum> DeactivateUser(int id, ClaimsPrincipal userClaims);
     Task<HttpStatusEnum> ReactivateUser(int id);
+    Task<HttpStatusEnum> RemoveUser(int id, ClaimsPrincipal userClaims);
 }

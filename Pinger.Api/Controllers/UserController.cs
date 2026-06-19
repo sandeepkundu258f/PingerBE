@@ -43,4 +43,24 @@ public class UserController(IUserService userService): ControllerBase
             _ => BadRequest()
         };
     }
+    
+    [HttpDelete("Remove")]
+    public async Task<IActionResult> RemoveUser(int id)
+    {
+        var result = await userService.RemoveUser(id, User);
+        return result switch
+        {
+            HttpStatusEnum.Unauthorized => Unauthorized("Could not identify the logged in user."),
+            HttpStatusEnum.Forbidden => StatusCode(
+                StatusCodes.Status403Forbidden, 
+                new 
+                { 
+                    message = "You are not authorized to remove this user's account." 
+                }
+            ),
+            HttpStatusEnum.Ok => Ok(new { message = $"User {id} was successfully removed." }),
+            HttpStatusEnum.NotFound => NotFound("Target user does not exist."),
+            _ => BadRequest()
+        };
+    }
 }
