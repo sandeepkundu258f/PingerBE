@@ -14,53 +14,44 @@ public class UserController(IUserService userService): ControllerBase
     [HttpPatch("Deactivate")]
     public async Task<IActionResult> DeactivateUser(int id)
     {
-        var result = await userService.DeactivateUser(id, User);
-        return result switch
+        try
         {
-            HttpStatusEnum.Unauthorized => Unauthorized("Could not identify the logged in user."),
-            HttpStatusEnum.Forbidden => StatusCode(
-                StatusCodes.Status403Forbidden, 
-                new 
-                { 
-                    message = "You are not authorized to deactivate this user's account." 
-                }
-            ),
-            HttpStatusEnum.Ok => Ok(new { message = $"User {id} was successfully deactivated." }),
-            HttpStatusEnum.NotFound => NotFound("Target user does not exist."),
-            _ => BadRequest()
-        };
+            var result = await userService.DeactivateUser(id, User);
+            return StatusCode(result.StatusCode, new {message = result.Payload});
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
     
     [Authorize(Roles = $"{nameof(RoleEnum.Admin)}")]
     [HttpPatch("Reactivate")]
     public async Task<IActionResult> ReactivateUser(int id)
     {
-        var result = await userService.ReactivateUser(id);
-        return result switch
+        try
         {
-            HttpStatusEnum.Ok => Ok(new { message = $"User {id} was successfully reactivated." }),
-            HttpStatusEnum.NotFound => NotFound("Target user does not exist."),
-            _ => BadRequest()
-        };
+            var result = await userService.ReactivateUser(id);
+            return StatusCode(result.StatusCode, new {message = result.Payload});
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+        
     }
     
     [HttpDelete("Remove")]
     public async Task<IActionResult> RemoveUser(int id)
     {
-        var result = await userService.RemoveUser(id, User);
-        return result switch
+        try
         {
-            HttpStatusEnum.Unauthorized => Unauthorized("Could not identify the logged in user."),
-            HttpStatusEnum.Forbidden => StatusCode(
-                StatusCodes.Status403Forbidden, 
-                new 
-                { 
-                    message = "You are not authorized to remove this user's account." 
-                }
-            ),
-            HttpStatusEnum.Ok => Ok(new { message = $"User {id} was successfully removed." }),
-            HttpStatusEnum.NotFound => NotFound("Target user does not exist."),
-            _ => BadRequest()
-        };
+            var result = await userService.RemoveUser(id, User);
+            return StatusCode(result.StatusCode, new {message = result.Payload});
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 }

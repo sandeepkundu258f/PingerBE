@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Pinger.Application.Domain;
 using Pinger.Application.Enums;
+using Pinger.Application.Records;
 using Pinger.Application.Services.Interface;
 using Pinger.Infrastructure.Persistence;
 
@@ -9,13 +11,13 @@ namespace Pinger.Infrastructure.Services;
 
 public class UserService(AppDbContext dbcontext) : IUserService
 {
-    public async Task<HttpStatusEnum> DeactivateUser(int id, ClaimsPrincipal userClaims)
+    public async Task<EndPointResponseRecord<string>> DeactivateUser(int id, ClaimsPrincipal userClaims)
     {
         try
         {
             var check = CheckUserRight(id, userClaims);
             if (check != null)
-                return check.Value;
+                return check;
 
             return await ChangeUserState(id, true);
         }
@@ -26,7 +28,7 @@ public class UserService(AppDbContext dbcontext) : IUserService
         }
     }
 
-    public async Task<HttpStatusEnum> ReactivateUser(int id)
+    public async Task<EndPointResponseRecord<string>> ReactivateUser(int id)
     {
         try
         {
@@ -39,22 +41,22 @@ public class UserService(AppDbContext dbcontext) : IUserService
         }
     }
 
-    public async Task<HttpStatusEnum> RemoveUser(int id, ClaimsPrincipal userClaims)
+    public async Task<EndPointResponseRecord<string>> RemoveUser(int id, ClaimsPrincipal userClaims)
     {
         try
         {
             var check = CheckUserRight(id, userClaims);
             if (check != null)
-                return check.Value;
+                return check;
         
             var user =  await FindUserById(id);
         
             if (user == null)
-                return HttpStatusEnum.NotFound;
+                return new EndPointResponseRecord<string>(StatusCodes.Status404NotFound, "User not found.");
         
             dbcontext.Remove(user);
             await dbcontext.SaveChangesAsync();
-            return HttpStatusEnum.Ok;
+            return new EndPointResponseRecord<string>(StatusCodes.Status200OK, $"User {id} removed");
         }
         catch (Exception e)
         {
@@ -63,17 +65,17 @@ public class UserService(AppDbContext dbcontext) : IUserService
         }
     }
 
-    private async Task<HttpStatusEnum> ChangeUserState(int id, bool isDeleted)
+    private async Task<EndPointResponseRecord<string>> ChangeUserState(int id, bool isDeleted)
     {
         try
         {
             var user =  await FindUserById(id);
 
             if (user == null)
-                return HttpStatusEnum.NotFound;
+                return new EndPointResponseRecord<string>(StatusCodes.Status404NotFound, "User not found.");
         
             if (user.IsDeleted == isDeleted)
-                return HttpStatusEnum.Ok;
+                return new EndPointResponseRecord<string>(StatusCodes.Status200OK, $"User {id} already {(isDeleted? "inactive": "active")}");
         
             user.IsDeleted = isDeleted;
             foreach (var userRole in user.UserRoles)
@@ -82,7 +84,7 @@ public class UserService(AppDbContext dbcontext) : IUserService
             }
         
             await dbcontext.SaveChangesAsync();
-            return HttpStatusEnum.Ok;
+            return new EndPointResponseRecord<string>(StatusCodes.Status200OK, $"User {id} is {(isDeleted? "deactivated": "reactivated")}");
         }
         catch (Exception e)
         {
@@ -108,19 +110,19 @@ public class UserService(AppDbContext dbcontext) : IUserService
         
     }
 
-    private HttpStatusEnum? CheckUserRight(int id, ClaimsPrincipal userClaims)
+    private EndPointResponseRecord<string>? CheckUserRight(int id, ClaimsPrincipal userClaims)
     {
         try
         {
             var loggedInUserId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(loggedInUserId))
-                return HttpStatusEnum.Unauthorized;
+                return new EndPointResponseRecord<string>(StatusCodes.Status401Unauthorized,"Could not identify the logged in user.");
         
             var loggedInUserIsAdmin = userClaims.IsInRole(nameof(RoleEnum.Admin));
 
             if (!loggedInUserIsAdmin && loggedInUserId != id.ToString())
-                return HttpStatusEnum.Forbidden;
+                return new EndPointResponseRecord<string>(StatusCodes.Status403Forbidden,"You are not authorized to perform this action on this user's account.");
 
             return null;
         }
