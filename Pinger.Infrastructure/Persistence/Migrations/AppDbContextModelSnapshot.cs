@@ -15,7 +15,7 @@ namespace Pinger.Infrastructure.Persistence.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
 
             modelBuilder.Entity("Pinger.Application.Domain.PingLog", b =>
                 {
@@ -45,7 +45,7 @@ namespace Pinger.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PingTargetId");
 
-                    b.ToTable("PingLogs");
+                    b.ToTable("PingLogs", (string)null);
                 });
 
             modelBuilder.Entity("Pinger.Application.Domain.PingTarget", b =>
@@ -84,7 +84,7 @@ namespace Pinger.Infrastructure.Persistence.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("PingTargets");
+                    b.ToTable("PingTargets", (string)null);
                 });
 
             modelBuilder.Entity("Pinger.Application.Domain.Role", b =>
@@ -115,7 +115,7 @@ namespace Pinger.Infrastructure.Persistence.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
 
                     b.HasData(
                         new
@@ -176,7 +176,7 @@ namespace Pinger.Infrastructure.Persistence.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new
@@ -222,7 +222,7 @@ namespace Pinger.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "RoleId")
                         .IsUnique();
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRoles", (string)null);
 
                     b.HasData(
                         new
