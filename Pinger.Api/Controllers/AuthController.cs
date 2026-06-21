@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Pinger.Application.DTOs;
+using Pinger.Application.DTOs.AuthDTOs;
 using Pinger.Application.Services.Interface;
 
 namespace Pinger.Api.Controllers;

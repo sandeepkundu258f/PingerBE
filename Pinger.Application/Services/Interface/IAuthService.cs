@@ -1,4 +1,4 @@
-using Pinger.Application.DTOs;
+using Pinger.Application.DTOs.AuthDTOs;
 
 namespace Pinger.Application.Services.Interface;
 
