@@ -17,7 +17,7 @@ public class UserController(IUserService userService): ControllerBase
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeactivateUser(int id)
     {
         try
@@ -35,7 +35,7 @@ public class UserController(IUserService userService): ControllerBase
     [HttpPatch("{id:int}/Reactivate")]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ReactivateUser(int id)
     {
         try
@@ -55,7 +55,7 @@ public class UserController(IUserService userService): ControllerBase
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RemoveUser(int id)
     {
         try
@@ -72,7 +72,7 @@ public class UserController(IUserService userService): ControllerBase
     [Authorize(Roles = $"{nameof(RoleEnum.Admin)},{nameof(RoleEnum.SuperAdmin)}")]
     [HttpGet("FetchAll")]
     [ProducesResponseType(typeof(AllUserDetailResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> FetchAllUserDetails()
     {
@@ -92,7 +92,7 @@ public class UserController(IUserService userService): ControllerBase
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> FetchUserDetail(int id)
     {
         try
