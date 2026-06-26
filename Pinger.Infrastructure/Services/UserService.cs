@@ -6,6 +6,7 @@ using Pinger.Application.DTOs.UserDTOs;
 using Pinger.Application.Enums;
 using Pinger.Application.Records;
 using Pinger.Application.Services.Interface;
+using Pinger.Application.Utility;
 using Pinger.Infrastructure.Persistence;
 
 namespace Pinger.Infrastructure.Services;
@@ -16,7 +17,7 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var check = IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims);
+            var check = AuthUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims, [RoleEnum.Admin,RoleEnum.SuperAdmin]);
             if (check != null)
                 return check;
 
@@ -46,7 +47,7 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var check = IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims);
+            var check = AuthUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
             if (check != null)
                 return check;
         
@@ -107,7 +108,7 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var check = IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims);
+            var check = AuthUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
             if (check != null)
                 return new EndPointResponseRecord<UserDetailResponseDto>(check.StatusCode, null, check.Message);
             
@@ -190,7 +191,7 @@ public class UserService(AppDbContext dbcontext) : IUserService
         
     }
 
-    private EndPointResponseRecord<string>? IsAuthorizedForSelfOrHaveRights(int targetUserId, ClaimsPrincipal userClaims)
+    /*private EndPointResponseRecord<string>? IsAuthorizedForSelfOrHaveRights(int targetUserId, ClaimsPrincipal userClaims, List<RoleEnum> userRolesAllowed)
     {
         try
         {
@@ -198,10 +199,15 @@ public class UserService(AppDbContext dbcontext) : IUserService
 
             if (string.IsNullOrEmpty(loggedInUserId))
                 return new EndPointResponseRecord<string>(StatusCodes.Status401Unauthorized,null,"Could not identify the logged in user.");
-        
-            var loggedInUserIsAdmin = userClaims.IsInRole(nameof(RoleEnum.Admin))||userClaims.IsInRole(nameof(RoleEnum.SuperAdmin));
+            
+            var loggedInUserIsAllowed = userRolesAllowed.Any(x =>
+            {
+                if (!Enum.IsDefined(typeof(RoleEnum), x))
+                    throw new InvalidEnumArgumentException(nameof(x), (int)x, typeof(RoleEnum));
+                return userClaims.IsInRole(x.ToString());
+            });
 
-            if (!loggedInUserIsAdmin && loggedInUserId != targetUserId.ToString())
+            if (!loggedInUserIsAllowed && loggedInUserId != targetUserId.ToString())
                 return new EndPointResponseRecord<string>(StatusCodes.Status403Forbidden,null,"You are not authorized to perform this action.");
 
             return null;
@@ -211,6 +217,5 @@ public class UserService(AppDbContext dbcontext) : IUserService
             Console.WriteLine(e);
             throw;
         }
-        
-    }
+    }*/
 }
