@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Pinger.Application.Domain;
-using Pinger.Application.DTOs;
 using Pinger.Application.DTOs.AuthDTOs;
 using Pinger.Application.Enums;
 using Pinger.Application.Services.Interface;

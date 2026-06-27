@@ -40,7 +40,7 @@ public class UserController(IUserService userService): ControllerBase
     {
         try
         {
-            var result = await userService.ReactivateUser(id);
+            var result = await userService.ReactivateUser(id, User);
             return StatusCode(result.StatusCode, new StandardResponseDto(result.Message));
         }
         catch (Exception e)
