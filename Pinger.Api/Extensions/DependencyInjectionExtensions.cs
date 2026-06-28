@@ -14,7 +14,6 @@ public static class DependencyInjectionExtensions
             options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
 
         // Register Application/Infrastructure dependencies
-        services.AddScoped<IPingTargetService, PingTargetService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
 

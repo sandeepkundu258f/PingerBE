@@ -6,11 +6,11 @@ namespace Pinger.Infrastructure.Persistence;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<PingTarget>  PingTargets { get; set; }
-    public DbSet<PingLog> PingLogs { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
+    
+    public DbSet<UserSession> UserSessions { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -36,31 +36,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<PingTarget>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-            entity.HasIndex(x=>x.Name).IsUnique();
-            entity.Property(x => x.Name)
-                .IsRequired()
-                .HasMaxLength(128);
-            entity.Property(x => x.Url)
-                .IsRequired()
-                .HasMaxLength(500);
-            entity.Property(x=>x.IntervalSeconds)
-                .IsRequired();
-            entity.Property(x=>x.IsActive)
-                .IsRequired();
-        });
-
-        modelBuilder.Entity<PingLog>(entity =>
-        {
-            entity.HasKey(x => x.Id);
-            entity.HasOne(x => x.PingTarget)
-                .WithMany(y => y.PingLogs)
-                .HasForeignKey(x => x.PingTargetId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
         modelBuilder.Entity<UserRole>(entity =>
         {
             entity.HasKey(x=>x.Id);
@@ -78,17 +53,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             
             entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(r => r.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            // Default SuperAdmin
+            entity.HasData(
+                new UserRole
+                {
+                    Id = 1,
+                    UserId = (int)UserEnum.sysadmin,
+                    RoleId = (int)RoleEnum.SuperAdmin,
+                    IsDeleted = false
+                }
+            );
         });
-        // Default SuperAdmin
-        modelBuilder.Entity<UserRole>().HasData(
-            new UserRole
-            {
-                Id = 1,
-                UserId = (int)UserEnum.sysadmin,
-                RoleId = (int)RoleEnum.SuperAdmin,
-                IsDeleted = false
-            }
-        );
 
         modelBuilder.Entity<User>(entity =>
         {
@@ -97,19 +73,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             
             entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(r => r.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            // Default SuperAdmin
+            entity.HasData(
+                new User
+                {
+                    Id = (int)UserEnum.sysadmin,
+                    Username = nameof(UserEnum.sysadmin), //sysadmin
+                    PasswordHash = "$2a$12$SYJyDpVwm.1//dVZTKX.B.PdnIpDFqUk4LUsWdYwSqZBZk8LsHzwW", //password
+                    IsDeleted = false
+                }
+            );
         });
         
-        // Default SuperAdmin
-        modelBuilder.Entity<User>().HasData(
-            new User
-            {
-                Id = (int)UserEnum.sysadmin,
-                Username = nameof(UserEnum.sysadmin), //sysadmin
-                PasswordHash = "$2a$12$SYJyDpVwm.1//dVZTKX.B.PdnIpDFqUk4LUsWdYwSqZBZk8LsHzwW", //password
-                IsDeleted = false
-            }
-        );
-
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(x => x.Id);
@@ -117,15 +93,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             
             entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(r => r.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasData(
+                new Role { Id = (int)RoleEnum.SuperAdmin, Name =  nameof(RoleEnum.SuperAdmin), IsDeleted = false },
+                new Role { Id = (int)RoleEnum.Admin, Name = nameof(RoleEnum.Admin), IsDeleted = false },
+                new Role { Id = (int)RoleEnum.User, Name =  nameof(RoleEnum.User), IsDeleted = false }
+                // Add additional roles below this comment
+            );
         });
 
-        // Default Roles
-        modelBuilder.Entity<Role>().HasData(
-            new Role { Id = (int)RoleEnum.SuperAdmin, Name =  nameof(RoleEnum.SuperAdmin), IsDeleted = false },
-            new Role { Id = (int)RoleEnum.Admin, Name = nameof(RoleEnum.Admin), IsDeleted = false },
-            new Role { Id = (int)RoleEnum.User, Name =  nameof(RoleEnum.User), IsDeleted = false }
+        modelBuilder.Entity<UserSession>(entity =>
+        {
+            entity.HasOne(x => x.User)
+                .WithMany(y  => y.UserSessions)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
             
-            // Add additional below this comment
-        );
+            entity.Ignore(x => x.IsDeleted);
+        });
     }
 }
