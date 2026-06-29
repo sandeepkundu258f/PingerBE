@@ -13,14 +13,15 @@ namespace Pinger.Application.Utility;
 
 public static class AuthUtility
 {
-    public static string GenerateJwtToken(User user, IConfigurationSection jwtSettings)
+    public static string GenerateJwtToken(User user, IConfigurationSection jwtSettings, Guid sessionId)
     {
         var key = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key missing"));
 
         List<Claim> claims =
         [
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, user.Username)
+            new(ClaimTypes.Name, user.Username),
+            new("SessionId", sessionId.ToString())
         ];
 
         foreach (var userRole in user.UserRoles)

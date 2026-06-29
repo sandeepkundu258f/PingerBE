@@ -32,16 +32,17 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         try
         {
-            var token = await authService.LoginAsync(requestDto);
+            var token = await authService.LoginAsync(requestDto, Request);
             if (token == null)
-                return Unauthorized("Invalid creds");
+                return Unauthorized("Invalid credentials");
 
             return Ok(
                 new
                 {
                     access_token = token ,
                     token_type = "Bearer"
-                });
+                }
+            );
         }
         catch (Exception e)
         {
