@@ -17,11 +17,11 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var superAdminCheck = AuthUtility.PreventSuperAdminModification(dbcontext.Users.Include(x=>x.UserRoles).FirstOrDefault(x => x.Id == targetUserid), userClaims);
+            var superAdminCheck = RightsUtility.PreventSuperAdminModification(dbcontext.Users.Include(x=>x.UserRoles).FirstOrDefault(x => x.Id == targetUserid), userClaims);
             if (superAdminCheck != null)
                 return superAdminCheck;
             
-            var authorizationCheck = AuthUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims, [RoleEnum.Admin,RoleEnum.SuperAdmin]);
+            var authorizationCheck = RightsUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims, [RoleEnum.Admin,RoleEnum.SuperAdmin]);
             if (authorizationCheck != null)
                 return authorizationCheck;
 
@@ -38,7 +38,7 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var superAdminCheck = AuthUtility.PreventSuperAdminModification(dbcontext.Users.Include(x=>x.UserRoles).FirstOrDefault(x => x.Id == targetUserid), userClaims);
+            var superAdminCheck = RightsUtility.PreventSuperAdminModification(dbcontext.Users.Include(x=>x.UserRoles).FirstOrDefault(x => x.Id == targetUserid), userClaims);
             if (superAdminCheck != null)
                 return superAdminCheck;
             
@@ -55,11 +55,11 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var superAdminCheck = AuthUtility.PreventSuperAdminModification(dbcontext.Users.Include(x=>x.UserRoles).FirstOrDefault(x => x.Id == targetUserid), userClaims);
+            var superAdminCheck = RightsUtility.PreventSuperAdminModification(dbcontext.Users.Include(x=>x.UserRoles).FirstOrDefault(x => x.Id == targetUserid), userClaims);
             if (superAdminCheck != null)
                 return superAdminCheck;
             
-            var check = AuthUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
+            var check = RightsUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
             if (check != null)
                 return check;
         
@@ -120,7 +120,7 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var check = AuthUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
+            var check = RightsUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
             if (check != null)
                 return new EndPointResponseRecord<UserDetailResponseDto>(check.StatusCode, null, check.Message);
             
