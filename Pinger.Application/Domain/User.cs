@@ -6,4 +6,5 @@ public class User: BaseEntity
     public required string PasswordHash { get; set; }
     
     public ICollection<UserRole>  UserRoles { get; set; } =  new List<UserRole>();
+    public ICollection<UserSession>  UserSessions { get; set; } =  new List<UserSession>();
 }

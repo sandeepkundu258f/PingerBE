@@ -17,9 +17,13 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var check = AuthUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims, [RoleEnum.Admin,RoleEnum.SuperAdmin]);
-            if (check != null)
-                return check;
+            var superAdminCheck = RightsUtility.PreventSuperAdminModification(dbcontext.Users.Include(x=>x.UserRoles).FirstOrDefault(x => x.Id == targetUserid), userClaims);
+            if (superAdminCheck != null)
+                return superAdminCheck;
+            
+            var authorizationCheck = RightsUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims, [RoleEnum.Admin,RoleEnum.SuperAdmin]);
+            if (authorizationCheck != null)
+                return authorizationCheck;
 
             return await ChangeUserState(targetUserid, true);
         }
@@ -30,10 +34,14 @@ public class UserService(AppDbContext dbcontext) : IUserService
         }
     }
 
-    public async Task<EndPointResponseRecord<string>> ReactivateUser(int targetUserid)
+    public async Task<EndPointResponseRecord<string>> ReactivateUser(int targetUserid, ClaimsPrincipal userClaims)
     {
         try
         {
+            var superAdminCheck = RightsUtility.PreventSuperAdminModification(dbcontext.Users.Include(x=>x.UserRoles).FirstOrDefault(x => x.Id == targetUserid), userClaims);
+            if (superAdminCheck != null)
+                return superAdminCheck;
+            
             return await ChangeUserState(targetUserid, false);
         }
         catch (Exception e)
@@ -47,7 +55,11 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var check = AuthUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
+            var superAdminCheck = RightsUtility.PreventSuperAdminModification(dbcontext.Users.Include(x=>x.UserRoles).FirstOrDefault(x => x.Id == targetUserid), userClaims);
+            if (superAdminCheck != null)
+                return superAdminCheck;
+            
+            var check = RightsUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
             if (check != null)
                 return check;
         
@@ -108,7 +120,7 @@ public class UserService(AppDbContext dbcontext) : IUserService
     {
         try
         {
-            var check = AuthUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
+            var check = RightsUtility.IsAuthorizedForSelfOrHaveRights(targetUserid, userClaims,[RoleEnum.Admin,RoleEnum.SuperAdmin]);
             if (check != null)
                 return new EndPointResponseRecord<UserDetailResponseDto>(check.StatusCode, null, check.Message);
             
@@ -190,32 +202,4 @@ public class UserService(AppDbContext dbcontext) : IUserService
         }
         
     }
-
-    /*private EndPointResponseRecord<string>? IsAuthorizedForSelfOrHaveRights(int targetUserId, ClaimsPrincipal userClaims, List<RoleEnum> userRolesAllowed)
-    {
-        try
-        {
-            var loggedInUserId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(loggedInUserId))
-                return new EndPointResponseRecord<string>(StatusCodes.Status401Unauthorized,null,"Could not identify the logged in user.");
-            
-            var loggedInUserIsAllowed = userRolesAllowed.Any(x =>
-            {
-                if (!Enum.IsDefined(typeof(RoleEnum), x))
-                    throw new InvalidEnumArgumentException(nameof(x), (int)x, typeof(RoleEnum));
-                return userClaims.IsInRole(x.ToString());
-            });
-
-            if (!loggedInUserIsAllowed && loggedInUserId != targetUserId.ToString())
-                return new EndPointResponseRecord<string>(StatusCodes.Status403Forbidden,null,"You are not authorized to perform this action.");
-
-            return null;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-    }*/
 }
