@@ -1,4 +1,5 @@
 using Pinger.Api.Extensions;
+using Pinger.Api.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddSwaggerConfiguration();
 //Base Framework Services
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -29,4 +31,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<DeviceHub>("/device-hub");
+
 app.Run();

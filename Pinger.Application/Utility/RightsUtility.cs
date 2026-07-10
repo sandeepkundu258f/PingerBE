@@ -7,7 +7,7 @@ using Pinger.Application.Domain;
 
 namespace Pinger.Application.Utility;
 
-public class RightsUtility
+public static class RightsUtility
 {
     public static EndPointResponseRecord<string>? IsAuthorizedForSelfOrHaveRights(int targetUserId, ClaimsPrincipal userClaims, List<RoleEnum> userRolesAllowed)
     {

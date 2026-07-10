@@ -16,6 +16,7 @@ public static class DependencyInjectionExtensions
         // Register Application/Infrastructure dependencies
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IDeviceHubService, DeviceHubService>();
 
         return services;
     }
