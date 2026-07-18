@@ -18,7 +18,7 @@ public class UserController(IUserService userService): ControllerBase
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> DeactivateUser(int id)
+    public async Task<IActionResult> DeactivateUser([FromRoute]int id)
     {
         try
         {
@@ -36,7 +36,7 @@ public class UserController(IUserService userService): ControllerBase
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ReactivateUser(int id)
+    public async Task<IActionResult> ReactivateUser([FromRoute]int id)
     {
         try
         {
@@ -56,7 +56,7 @@ public class UserController(IUserService userService): ControllerBase
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RemoveUser(int id)
+    public async Task<IActionResult> RemoveUser([FromRoute]int id)
     {
         try
         {
@@ -93,7 +93,7 @@ public class UserController(IUserService userService): ControllerBase
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> FetchUserDetail(int id)
+    public async Task<IActionResult> FetchUserDetail([FromRoute]int id)
     {
         try
         {

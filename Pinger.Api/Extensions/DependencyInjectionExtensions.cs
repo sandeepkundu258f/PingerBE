@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Pinger.Application.Services.Interface;
+using Pinger.Application.Utility;
 using Pinger.Infrastructure.Persistence;
 using Pinger.Infrastructure.Services;
 
@@ -12,6 +13,9 @@ public static class DependencyInjectionExtensions
         // Configure SQLite
         services.AddDbContext<AppDbContext>(options => 
             options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
+
+        // The session manager, need to maintain the lifetime
+        services.AddSingleton<SignalRSessionManager>();
 
         // Register Application/Infrastructure dependencies
         services.AddScoped<IAuthService, AuthService>();

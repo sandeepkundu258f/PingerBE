@@ -4,13 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Pinger.Application.DTOs;
 using Pinger.Application.DTOs.DeviceHubDTOs;
 using Pinger.Application.Services.Interface;
+using Pinger.Infrastructure.Services;
 
 namespace Pinger.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class DeviceHubController(IDeviceHubService deviceHubService): ControllerBase
+public class DeviceHubController(IDeviceHubService deviceHubService, SignalRSessionManager sessionManager): ControllerBase
 {
     [ProducesResponseType(typeof(IEnumerable<DeviceListResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status401Unauthorized)]
@@ -34,6 +35,28 @@ public class DeviceHubController(IDeviceHubService deviceHubService): Controller
             Console.WriteLine(e);
             throw;
         }
-        
+    }
+
+    [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(StandardResponseDto), StatusCodes.Status404NotFound)]
+    [HttpDelete("{sessionId}/TerminateSession")]
+    public async Task<IActionResult> TerminateSession([FromRoute] string sessionId)
+    {
+        try
+        {
+            bool wasKicked = await sessionManager.KickSession(sessionId);
+            
+            if (wasKicked)
+            {
+                return StatusCode(StatusCodes.Status200OK, new StandardResponseDto($"SignalR connection for session {sessionId} aborted."));
+            }
+            
+            return StatusCode(StatusCodes.Status404NotFound, new StandardResponseDto("No active SignalR connection found for this session."));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
