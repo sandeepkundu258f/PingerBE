@@ -40,8 +40,12 @@ public static class AuthenticationExtensions
 
                         //Extract the User ID from the token's claims
                         var userIdStr = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                        var sessionIdStr = context.Principal?.FindFirst("SessionId")?.Value;
 
-                        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+                        if (string.IsNullOrEmpty(userIdStr) 
+                            || !int.TryParse(userIdStr, out var userId)
+                            ||string.IsNullOrEmpty(sessionIdStr) 
+                            || !Guid.TryParse(sessionIdStr, out var sessionIdGuid))
                         {
                             context.Fail("Unauthorized: Token contains invalid user data.");
                             return;
@@ -50,8 +54,11 @@ public static class AuthenticationExtensions
                         //Query the DB to check if the user still exists and is active
                         var userExistsAndActive = await dbContext.Users
                             .AnyAsync(u => u.Id == userId && u.IsDeleted == false);
+                        
+                        var userSessionExists = await dbContext.UserSessions
+                            .AnyAsync(u => u.SessionId ==  sessionIdGuid && u.UserId == userId);
 
-                        if (!userExistsAndActive)
+                        if (!userExistsAndActive || !userSessionExists)
                         {
                             // Instantly neutralizes the token and forces a 401 Unauthorized response
                             context.Fail("Unauthorized: This account has been deleted or deactivated.");
