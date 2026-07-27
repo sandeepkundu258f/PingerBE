@@ -4,7 +4,7 @@ using Pinger.Api.Hubs;
 var builder = WebApplication.CreateBuilder(args);
 
 //Load Isolated Configurations via custom Extension Methods
-builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddSwaggerConfiguration();
 

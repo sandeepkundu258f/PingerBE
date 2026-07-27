@@ -8,19 +8,27 @@ namespace Pinger.Api.Extensions;
 
 public static class DependencyInjectionExtensions
 {
-    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+    private static readonly Type[] ApplicationServices =
+    {
+        typeof(AuthService),
+        typeof(UserService),
+        typeof(DeviceHubService),
+    };
+
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure SQLite
         services.AddDbContext<AppDbContext>(options => 
             options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
 
-        // The session manager, need to maintain the lifetime
+        // Sessions persist across multiple HTTP requests, keep one instance
         services.AddSingleton<SignalRSessionManager>();
 
-        // Register Application/Infrastructure dependencies
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IDeviceHubService, DeviceHubService>();
+        foreach (var serviceType in ApplicationServices)
+        {
+            var interfaceType = serviceType.GetInterfaces()[0];
+            services.AddScoped(interfaceType, serviceType);
+        }
 
         return services;
     }
